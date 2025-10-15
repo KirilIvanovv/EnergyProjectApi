@@ -21,7 +21,7 @@
       <div class="d-flex align-items-center justify-content-center mb-3">
         <h1 class="h2 mb-1">Electricity Prices</h1>
       </div>
-      <p class="text-muted">Live spot prices from Nord Pool — Latvia (LV)</p>
+      <p class="text-muted">Live spot prices from Nord Pool - Latvia (LV)</p>
     </header>
 
     {% if error %}
@@ -46,7 +46,30 @@
 
     {% if min_price %}
       <div class="row mb-4">
-        <div class="col-md-6 mb-3">
+
+        <div class="col-md-4 mb-3">
+          <div class="card border-primary card-highlight h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-2">
+                <svg class="text-primary me-2" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+                </svg>
+                <h6 class="card-title mb-0 text-primary">Price Right Now</h6>
+              </div>
+              {% if current_price %}
+                <h3 class="text-primary">{{ current_price }} {{ currency }}</h3>
+                <p class="card-text text-muted mb-1">
+                  <small>{{ current_start|date:"M d, Y" }} • {{ current_start|time:"H:i" }}</small>
+                </p>
+              {% else %}
+                <p class="text-muted">No data available</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
           <div class="card border-success card-highlight h-100">
             <div class="card-body">
               <div class="d-flex align-items-center mb-2">
@@ -58,13 +81,13 @@
               </div>
               <h3 class="price-low">{{ min_price }} {{ currency }}</h3>
               <p class="card-text text-muted mb-1">
-                <small>{{ min_start }} - {{ min_end }}</small>
+                <small>{{ min_start|time:"H:i" }} - {{ min_end|time:"H:i" }}</small>
               </p>
             </div>
           </div>
         </div>
         
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
           <div class="card border-danger card-highlight h-100">
             <div class="card-body">
               <div class="d-flex align-items-center mb-2">
@@ -76,11 +99,13 @@
               </div>
               <h3 class="price-high">{{ max_price }} {{ currency }}</h3>
               <p class="card-text text-muted mb-1">
-                <small>{{ max_start }} - {{ max_end }}</small>
+                <small>{{ max_start|time:"H:i" }} - {{ max_end|time:"H:i" }}</small>
               </p>
             </div>
           </div>
         </div>
+
+        
       </div>
     {% endif %}
 

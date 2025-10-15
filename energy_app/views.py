@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from nordpool import elspot
 from dateutil import tz
 from django.utils import timezone
+from datetime import datetime
 
 def home(request):
     price_spot = elspot.Prices()
@@ -36,6 +37,18 @@ def home(request):
         if dt is None:
             return None
         return dt.astimezone(riga_tz)
+    
+    now = timezone.now().astimezone(riga_tz)
+
+    current_price = None
+    for v in valid_prices:
+        start = fmt(v.get("start"))
+        end = fmt(v.get("end"))
+        if start and end and start <= now < end:
+            current_price = v.get("value")
+            current_start = start
+            current_end = end
+            break
 
     context = {
         "min_price": min_item["value"],
@@ -45,6 +58,10 @@ def home(request):
         "max_price": max_item["value"],
         "max_start": fmt(max_item.get("start")),
         "max_end": fmt(max_item.get("end")),
+
+        "current_price": current_price,
+        "current_start": current_start if current_price else None,
+        "current_end": current_end if current_price else None,
 
         "all_values": [
             {"start": fmt(v.get("start")), "end": fmt(v.get("end")), "price": v.get("value")}
