@@ -1,53 +1,51 @@
-from django.shortcuts import render
-from nordpool import elspot
+import os
+import requests
 from datetime import datetime, timedelta
 from dateutil import tz
+from django.shortcuts import render
+
+RIGA_TZ = tz.gettz("Europe/Riga")
 
 def home(request):
-    AREA = "LV"
-    riga_tz = tz.gettz("Europe/Riga")
-
+    fetcher_url = os.getenv("FETCHER_URL", "http://fetcher_service:5000")
     try:
-        prices = elspot.Prices()
-        data = prices.fetch(areas=[AREA])
+        resp = requests.get(f"{fetcher_url}/prices", timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
     except Exception as e:
-        return render(request, "home.html", {"error": f" {e}"})
+        return render(request, "home.html", {"error": f"{e}"})
 
-    if not data or "areas" not in data:
-        return render(request, "home.html", {"error": "No data available"})
-
-    lv_data = data["areas"].get(AREA)
-    if not lv_data or "values" not in lv_data:
-        return render(request, "home.html", {"error": "No price data for the specified area"})
+    if not data or "values" not in data:
+        return render(request, "home.html", {"error": "No data available from fetcher"})
 
     all_values = []
-    for v in lv_data["values"]:
-        if not v["value"] or not v["start"]:
+    for v in data["values"]:
+        try:
+            start = datetime.fromisoformat(v["start"].replace("Z", "+00:00"))
+            end = datetime.fromisoformat(v["end"].replace("Z", "+00:00"))
+            price = float(v["price"])
+        except Exception:
             continue
-        start = v["start"].astimezone(riga_tz)
-        end = start + timedelta(hours=1)
-        all_values.append({"start": start, "end": end, "price": v["value"]})
+        all_values.append({"start": start, "end": end, "price": price})
 
-    if not all_values:
-        return render(request, "home.html", {"error": "No valid price data available"})
+    all_values.sort(key=lambda x: x["start"])
 
-    now = datetime.now(riga_tz)
-    current_price = None
-    for v in all_values:
-        if v["start"] <= now < v["end"]:
-            current_price = v["price"]
-            break
+    now = datetime.now(RIGA_TZ)
+    tomorrow = now.date() + timedelta(days=1)
+    tomorrow_values = [v for v in all_values if v["start"].date() == tomorrow]
 
-    min_price = min(all_values, key=lambda x: x["price"])
-    max_price = max(all_values, key=lambda x: x["price"])
+    current_price = 0  
 
     context = {
         "currency": data.get("currency", "EUR"),
-        "all_values": all_values,
-        "min_price": min_price,
-        "max_price": max_price,
+        "all_values": tomorrow_values,
+        "min_price": min(tomorrow_values, key=lambda x: x["price"]) if tomorrow_values else None,
+        "max_price": max(tomorrow_values, key=lambda x: x["price"]) if tomorrow_values else None,
         "current_price": current_price,
         "current_time": now,
     }
 
     return render(request, "home.html", context)
+
+def debug_prices(request):
+    return render(request, "home.html", {"all_values": [], "current_price": 0})

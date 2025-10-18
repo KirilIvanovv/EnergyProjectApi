@@ -1,0 +1,5 @@
+flask
+nordpool
+python-dateutil
+apscheduler
+requests

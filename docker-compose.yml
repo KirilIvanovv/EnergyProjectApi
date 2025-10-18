@@ -1,0 +1,21 @@
+services:
+  web:
+    build: .
+    container_name: django_app
+    ports:
+      - "8000:8000"
+    environment:
+      - FETCHER_URL=http://fetcher_service:5000
+    depends_on:
+      - fetcher_service
+
+  fetcher_service:
+    build: ./fetcher_service
+    container_name: fetcher_service
+    ports:
+      - "5000:5000"
+    environment:
+      - FETCHER_DATA_FILE=/data/data.json
+      - FETCH_INTERVAL_MIN=60
+    volumes:
+      - ./fetcher_data:/data
