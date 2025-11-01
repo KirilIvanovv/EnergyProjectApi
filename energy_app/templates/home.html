@@ -31,12 +31,9 @@
         <div class="col-md-4 mb-3">
           <div class="card border-primary card-highlight h-100">
             <div class="card-body">
-              <h6 class="card-title text-primary">Price Right Now</h6>
-              {% if current_price %}
-                <h3 class="text-primary">{{ current_price }} {{ currency }}</h3>
-                <p class="text-muted mb-0">
-                  <small>{{ current_time|date:"H:i" }}</small>
-                </p>
+              <h6 class="card-title text-primary">Average Price Today</h6>
+              {% if avg_price %}
+                <h3 class="text-primary">{{ avg_price }} {{ currency }}/MWh</h3>
               {% else %}
                 <p class="text-muted">No data available</p>
               {% endif %}
